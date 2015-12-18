@@ -3,6 +3,8 @@
 /*
 COLORS
 
+borrowed from:  http://www.mulinblog.com/a-color-palette-optimized-for-data-visualization/
+
 4D4D4D (gray)
 5DA5DA (blue)
 FAA43A (orange)
