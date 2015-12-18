@@ -25,7 +25,7 @@ const testData = [
       {
         name: 'JavaScript',
         level: 8.5,
-        color: '#4D4D4D'
+        color: '#F17CB0'
       },
       {
         name: 'HTML',
@@ -47,7 +47,7 @@ const testData = [
       {
         name: 'PhoneGap',
         level: 6,
-        color: '#5DA5DA'
+        color: '#B2912F'
       },
       {
         name: 'Swift',
@@ -69,7 +69,7 @@ const testData = [
       {
         name: 'Node.js',
         level: 3,
-        color: '#FAA43A'
+        color: '#4D4D4D'
       },
       {
         name: 'Ruby',
@@ -96,7 +96,7 @@ const testData = [
       {
         name: 'MongoDB',
         level: 4,
-        color: '#60BD68'
+        color: '#B276B2'
       }
     ]
   },
@@ -125,7 +125,7 @@ const testData = [
       {
         name: 'Interaction',
         level: 5,
-        color: '#B2912F'
+        color: '#5DA5DA'
       }
     ]
   },
@@ -142,6 +142,30 @@ const testData = [
     ]
   }
 ];
+
+
+function testArcDepth(level, hover = false, outer = false) {
+  const beginnerArray = [0, 0.5, 1, 1.5,  2];
+  const intermediateArray = [2.5, 3, 3.5, 4, 4.5];
+  const advancedArray = [5, 5.5, 6, 6.5, 7, 7.5];
+  const expertArray = [8, 8.5, 9, 9.5, 10];
+
+  if(beginnerArray.indexOf(level)  !== -1) {
+    return (outer ? beginnerOuterArc : (hover ? beginnerHoverArc : beginnerArc));
+  }
+
+  if(intermediateArray.indexOf(level)  !== -1) {
+    return (outer ? intermediateOuterArc : (hover ? intermediateHoverArc : intermediateArc));
+  }
+
+  if(advancedArray.indexOf(level)  !== -1) {
+    return (outer ? advancedOuterArc : (hover ? advancedHoverArc : advancedArc));
+  }
+
+  if(expertArray.indexOf(level)  !== -1) {
+    return (outer ? expertOuterArc : (hover ? expertHoverArc : expertArc));
+  }
+}
 
 let hoverTimeoutMethod;
 let hoverTimeout = 3000;
@@ -234,6 +258,66 @@ const radius = containerElement.offsetWidth / 4;
 
 const pie = d3.layout.pie().sort(null).value(function(d) { return d.level; });
 
+let beginnerArc = d3.svg.arc()
+  .innerRadius(radius * 0.25)
+  .outerRadius(radius * 0.35)
+;
+
+let intermediateArc = d3.svg.arc()
+  .innerRadius(radius * 0.25)
+  .outerRadius(radius * 0.45)
+;
+
+let advancedArc = d3.svg.arc()
+  .innerRadius(radius * 0.25)
+  .outerRadius(radius * 0.55)
+;
+
+let expertArc = d3.svg.arc()
+  .innerRadius(radius * 0.25)
+  .outerRadius(radius * 0.65)
+;
+
+let beginnerHoverArc = d3.svg.arc()
+  .innerRadius(radius * 0.25)
+  .outerRadius(radius * 0.65)
+;
+
+let intermediateHoverArc = d3.svg.arc()
+  .innerRadius(radius * 0.25)
+  .outerRadius(radius * 0.75)
+;
+
+let advancedHoverArc = d3.svg.arc()
+  .innerRadius(radius * 0.25)
+  .outerRadius(radius * 0.85)
+;
+
+let expertHoverArc = d3.svg.arc()
+  .innerRadius(radius * 0.25)
+  .outerRadius(radius * 0.95)
+;
+
+let beginnerOuterArc = d3.svg.arc()
+  .innerRadius(radius * 0.45)
+  .outerRadius(radius * 0.65)
+;
+
+let intermediateOuterArc = d3.svg.arc()
+  .innerRadius(radius * 0.55)
+  .outerRadius(radius * 0.75)
+;
+
+let advancedOuterArc = d3.svg.arc()
+  .innerRadius(radius * 0.65)
+  .outerRadius(radius * 0.85)
+;
+
+let expertOuterArc = d3.svg.arc()
+  .innerRadius(radius * 0.75)
+  .outerRadius(radius * 0.95)
+;
+
 let defaultArc = d3.svg.arc()
   .innerRadius(radius * 0.25)
   .outerRadius(radius * 0.65)
@@ -265,11 +349,11 @@ const color = d3.scale.ordinal()
   .range(colorsArray)
 ;
 
-setup(testData, defaultArc);
+setup(testData);
 
 buildKey(testData, legend);
 
-function setup(data, arc) {
+function setup(data) {
   let slice = svg
     .select('.slices')
       .selectAll('path.slice')
@@ -283,6 +367,10 @@ function setup(data, arc) {
     .attr('class', 'slice')
     .style('opacity', 0.65)
     .on('mouseenter', function(d) {
+      let thisArc = testArcDepth(d.data.level);
+      let thisHoverArc = testArcDepth(d.data.level, true);
+      let thisOuterArc = testArcDepth(d.data.level, false, true);
+
       clearTimeout(hoverTimeoutMethod);
 
       clearTimeout(hoverDelayMethod);
@@ -321,19 +409,31 @@ function setup(data, arc) {
             .classed('active', false)
             .transition().duration(300)
             .style('opacity', 0.65)
-            .attr('d', arc)
+            .attrTween('d', function(d) {
+              this._current = this._current || d;
+
+              const interpolate = d3.interpolate(this._current, d);
+
+              this._current = interpolate(0);
+
+              let arc = testArcDepth(d.data.level);
+
+              return (t) => {
+                return arc(interpolate(t));
+              };
+            })
           ;
 
           d3.select(this)
             .classed('active', true)
             .transition().duration(300)
             .style('opacity', 1.00)
-            .attr('d', hoverArc)
+            .attr('d', thisHoverArc)
           ;
 
           const levels = d.data.levels;
 
-          setupSecondary(levels, outerArc, d.startAngle, d.endAngle);
+          setupSecondary(levels, thisOuterArc, d.startAngle, d.endAngle);
         }, hoverDelay);
 
         d3.select(this)
@@ -345,11 +445,15 @@ function setup(data, arc) {
     .on('mouseout', function(d) {
       clearTimeout(hoverDelayMethod);
 
+      let thisArc = testArcDepth(d.data.level);
+      let thisHoverArc = testArcDepth(d.data.level, true);
+      let thisOuterArc = testArcDepth(d.data.level, false, true);
+
       if(!d3.select(this).classed('active')) {
         d3.select(this)
           .transition().duration(300)
           .style('opacity', 0.65)
-          .attr('d', arc)
+          .attr('d', thisArc)
         ;
       } else {
         hoverTimeoutMethod = setTimeout( () => {
@@ -385,7 +489,19 @@ function setup(data, arc) {
             .classed('active', false)
             .transition().duration(300)
             .style('opacity', 0.65)
-            .attr('d', arc)
+            .attrTween('d', function(d) {
+              this._current = this._current || d;
+
+              const interpolate = d3.interpolate(this._current, d);
+
+              this._current = interpolate(0);
+
+              let arc = testArcDepth(d.data.level);
+
+              return (t) => {
+                return arc(interpolate(t));
+              };
+            })
           ;
         }, hoverTimeout);
       }
@@ -425,13 +541,28 @@ function setup(data, arc) {
         d3.selectAll('.slice')
           .classed('active', false)
           .transition().duration(300)
-          .style('opacity', 0.65)
-          .attr('d', arc)
+          .attrTween('d', function(d) {
+              this._current = this._current || d;
+
+              const interpolate = d3.interpolate(this._current, d);
+
+              this._current = interpolate(0);
+
+              let arc = testArcDepth(d.data.level);
+
+              return (t) => {
+                return arc(interpolate(t));
+              };
+            })
         ;
       } else {
         clearTimeout(hoverTimeoutMethod);
 
         clearTimeout(hoverDelayMethod);
+
+        let thisArc = testArcDepth(d.data.level);
+        let thisHoverArc = testArcDepth(d.data.level, true);
+        let thisOuterArc = testArcDepth(d.data.level, false, true);
 
         d3.select('.lines')
           .transition().duration(150)
@@ -465,34 +596,32 @@ function setup(data, arc) {
           .classed('active', false)
           .transition().duration(300)
           .style('opacity', 0.65)
-          .attr('d', arc)
+          .attrTween('d', function(d) {
+              this._current = this._current || d;
+
+              const interpolate = d3.interpolate(this._current, d);
+
+              this._current = interpolate(0);
+
+              let arc = testArcDepth(d.data.level);
+
+              return (t) => {
+                return arc(interpolate(t));
+              };
+            })
         ;
 
         d3.select(this)
           .classed('active', true)
           .transition().duration(300)
           .style('opacity', 1.00)
-          .attr('d', hoverArc)
+          .attr('d', thisHoverArc)
         ;
 
         const levels = d.data.levels;
 
-        setupSecondary(levels, outerArc, d.startAngle, d.endAngle);
+        setupSecondary(levels, thisOuterArc, d.startAngle, d.endAngle);
       }
-
-      /*d3.selectAll('.slice-secondary').remove();
-      d3.selectAll('.line-secondary').remove();
-      d3.selectAll('.label-secondary').remove();
-
-      d3.selectAll('.slice').classed('active', false);
-
-      if(!d3.select(this).classed('active')) {
-        const levels = d.data.levels;
-
-        d3.select(this).classed('active', true);
-
-        setupSecondary(levels, outerArc, d.startAngle, d.endAngle);
-      }*/
     })
   ;
 
@@ -501,12 +630,14 @@ function setup(data, arc) {
     .attrTween('d', function(d) {
       this._current = this._current || d;
 
-      const interp = d3.interpolate(this._current, d);
+      const interpolate = d3.interpolate(this._current, d);
 
-      this._current = interp(0);
+      this._current = interpolate(0);
+
+      let arc = testArcDepth(d.data.level);
 
       return (t) => {
-        return arc(interp(t));
+        return arc(interpolate(t));
       };
     })
   ;
@@ -538,6 +669,8 @@ function setup(data, arc) {
         this._current = this._current || d;
 
         const interpolate = d3.interpolate(this._current, d);
+
+        let outerArc = testArcDepth(d.data.level, false, true);
 
         this._current = interpolate(0);
 
@@ -587,6 +720,10 @@ function setup(data, arc) {
         const interpolate = d3.interpolate(this._current, d);
 
         this._current = interpolate(0);
+
+        let arc = testArcDepth(d.data.level);
+
+        let outerArc = testArcDepth(d.data.level, false, true);
 
         return function(t) {
           let d2 = interpolate(t);
@@ -668,8 +805,6 @@ function setupSecondary(data, arc, start, end) {
     .transition().duration(200)
       .attrTween('transform', function(d) {
         this._current = this._current || d;
-
-        console.log(d);
 
         const interpolate = d3.interpolate(this._current, d);
 
