@@ -1,5 +1,5 @@
 
-  export default testData = [
+  const testData = [
     {
       name: 'Front End',
       level: 9,
@@ -125,3 +125,5 @@
       ]
     }
   ];
+
+  export default testData;
