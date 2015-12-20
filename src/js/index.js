@@ -16,6 +16,8 @@ DECF3F (yellow)
 F15854 (red)
 */
 
+import d3 from 'd3';
+
 const testData = [
   {
     name: 'Front End',
@@ -142,7 +144,6 @@ const testData = [
     ]
   }
 ];
-
 
 function testArcDepth(level, hover = false, outer = false) {
   const beginnerArray = [0, 0.5, 1, 1.5,  2];
