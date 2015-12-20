@@ -25,7 +25,7 @@ gulp.task('scss:watch', function () {
 });
 
 gulp.task('webpack:watch', function () {
-  gulp.watch('./src/js/index.js', ['webpack']);
+  gulp.watch('./src/js/**/*.js', ['webpack']);
 });
 
 gulp.task('watch', ['scss:watch', 'webpack:watch']);

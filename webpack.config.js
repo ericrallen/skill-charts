@@ -2,7 +2,7 @@ var path = require('path');
 
 var config = {
     entry: [
-    'babel-polyfill',
+      'babel-polyfill',
       path.resolve(__dirname, 'src/js/index.js'),
     ],
     output: {
